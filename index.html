@@ -1,0 +1,159 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>纸间 · Notes</title>
+  <meta name="description" content="一款专注、优雅的双栏笔记应用" />
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;500;600;700;800&family=Newsreader:opsz,wght@6..72,500;6..72,600&display=swap');
+    :root { --ink:#1d2b27; --muted:#7b8983; --line:rgba(29,43,39,.10); --paper:#f7f8f4; --panel:#ffffff; --sage:#b8cdb9; --deep:#29473e; --cream:#ecefe6; --radius:24px; }
+    * { box-sizing:border-box; }
+    body { margin:0; min-width:320px; color:var(--ink); background:radial-gradient(circle at 90% 8%, #e8efe4 0, transparent 28%), var(--paper); font-family:Manrope, system-ui, sans-serif; }
+    button, input, textarea { font:inherit; }
+    button { border:0; cursor:pointer; color:inherit; }
+    .app { display:grid; grid-template-columns:340px 1fr; min-height:100vh; }
+    .sidebar { padding:34px 24px 28px; border-right:1px solid var(--line); background:rgba(247,248,244,.76); }
+    .brand { display:flex; align-items:center; justify-content:space-between; margin:0 4px 36px; }
+    .brand-mark { display:flex; align-items:center; gap:11px; font-weight:800; letter-spacing:-.04em; font-size:20px; }
+    .mark { width:31px; height:31px; display:grid; place-items:center; border-radius:11px; background:var(--deep); color:#fff; font-family:Newsreader,serif; font-size:20px; transform:rotate(-7deg); }
+    .eyebrow { color:var(--muted); font:500 10px 'DM Mono',monospace; letter-spacing:.16em; text-transform:uppercase; }
+    .new-note { display:flex; align-items:center; justify-content:space-between; width:100%; padding:15px 15px 15px 18px; border-radius:16px; background:var(--deep); color:white; box-shadow:0 12px 30px rgba(41,71,62,.17); transition:transform .45s cubic-bezier(.32,.72,0,1), box-shadow .45s cubic-bezier(.32,.72,0,1); }
+    .new-note:hover { transform:translateY(-2px); box-shadow:0 17px 34px rgba(41,71,62,.23); }
+    .new-note span:last-child { display:grid; place-items:center; width:26px; height:26px; border-radius:50%; background:rgba(255,255,255,.16); font-size:20px; line-height:1; }
+    .search-wrap { position:relative; margin:22px 0 25px; }
+    .search-wrap svg { position:absolute; left:15px; top:14px; color:var(--muted); }
+    .search { width:100%; padding:13px 15px 13px 42px; border:1px solid transparent; outline:0; border-radius:14px; background:#edf0e9; color:var(--ink); transition:border-color .35s cubic-bezier(.32,.72,0,1), background .35s cubic-bezier(.32,.72,0,1); }
+    .search:focus { border-color:var(--sage); background:#fff; }
+    .list-heading { display:flex; justify-content:space-between; align-items:center; margin:0 6px 12px; }
+    .count { color:var(--muted); font-size:12px; }
+    .notes-list { display:grid; gap:8px; }
+    .note-card { position:relative; width:100%; text-align:left; padding:15px 16px 16px; border-radius:17px; background:transparent; transition:background .45s cubic-bezier(.32,.72,0,1), transform .45s cubic-bezier(.32,.72,0,1); }
+    .note-card:hover { background:#eef1eb; transform:translateX(2px); }
+    .note-card.active { background:#fff; box-shadow:0 10px 28px rgba(36,57,48,.07); }
+    .note-card.active:before { content:''; position:absolute; top:17px; left:-24px; width:3px; height:35px; border-radius:0 5px 5px 0; background:var(--deep); }
+    .note-title { display:flex; align-items:center; gap:7px; overflow:hidden; font-weight:700; font-size:13px; white-space:nowrap; text-overflow:ellipsis; }
+    .pin { color:#b38c57; font-size:12px; }
+    .note-excerpt { overflow:hidden; margin-top:7px; color:var(--muted); font-size:12px; white-space:nowrap; text-overflow:ellipsis; }
+    .note-meta { display:flex; justify-content:space-between; margin-top:12px; color:#a5afa9; font:10px 'DM Mono',monospace; }
+    .empty { padding:36px 10px; color:var(--muted); text-align:center; font-size:13px; line-height:1.7; }
+    .editor-shell { padding:32px clamp(25px, 7vw, 110px) 44px; min-width:0; }
+    .editor-top { display:flex; justify-content:space-between; align-items:center; margin-bottom:45px; }
+    .status { display:flex; align-items:center; gap:8px; color:var(--muted); font:11px 'DM Mono',monospace; }
+    .status-dot { width:7px; height:7px; border-radius:50%; background:#85a995; box-shadow:0 0 0 4px rgba(133,169,149,.15); }
+    .actions { display:flex; gap:8px; }
+    .icon-btn { display:grid; place-items:center; width:36px; height:36px; border-radius:12px; background:rgba(255,255,255,.75); color:var(--muted); transition:background .35s cubic-bezier(.32,.72,0,1), color .35s cubic-bezier(.32,.72,0,1), transform .35s cubic-bezier(.32,.72,0,1); }
+    .icon-btn:hover { color:var(--ink); background:#fff; transform:translateY(-2px); }
+    .icon-btn.danger:hover { color:#a05d55; }
+    .note-form { max-width:840px; margin:0 auto; }
+    .note-title-input { width:100%; padding:0; border:0; outline:0; color:var(--ink); background:transparent; font:600 clamp(36px, 5vw, 68px)/1.05 Newsreader,serif; letter-spacing:-.055em; }
+    .note-title-input::placeholder { color:#c5cec5; }
+    .note-info { display:flex; align-items:center; flex-wrap:wrap; gap:14px; margin:22px 0 39px; color:var(--muted); font:11px 'DM Mono',monospace; }
+    .tag { padding:6px 10px; border-radius:99px; background:#e5ede2; color:#5f7968; }
+    .divider { height:1px; margin-bottom:35px; background:var(--line); }
+    .markdown-grid { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:28px; }
+    .markdown-pane { min-width:0; }
+    .pane-label { display:flex; justify-content:space-between; align-items:center; margin-bottom:13px; color:#a1ada5; font:10px 'DM Mono',monospace; letter-spacing:.13em; text-transform:uppercase; }
+    .pane-label strong { color:#708379; font-weight:500; }
+    .md-tools { position:relative; }
+    .md-plus { display:grid; place-items:center; width:25px; height:25px; border-radius:8px; background:#e5ede2; color:var(--deep); font-size:18px; line-height:1; transition:background .35s cubic-bezier(.32,.72,0,1), transform .35s cubic-bezier(.32,.72,0,1); }
+    .md-plus:hover,.md-plus.open { background:var(--sage); transform:rotate(45deg); }
+    .md-menu { position:absolute; z-index:2; top:34px; left:0; display:grid; grid-template-columns:1fr 1fr; gap:5px; width:235px; padding:8px; border:1px solid rgba(29,43,39,.09); border-radius:15px; background:rgba(255,255,255,.97); box-shadow:0 16px 38px rgba(36,57,48,.15); opacity:0; transform:translateY(-6px) scale(.97); pointer-events:none; transform-origin:top left; transition:opacity .35s cubic-bezier(.32,.72,0,1), transform .35s cubic-bezier(.32,.72,0,1); }
+    .md-menu.open { opacity:1; transform:translateY(0) scale(1); pointer-events:auto; }
+    .md-item { padding:9px 10px; border-radius:9px; background:transparent; color:#5d6f64; text-align:left; font-size:12px; transition:background .3s cubic-bezier(.32,.72,0,1), color .3s cubic-bezier(.32,.72,0,1); }
+    .md-item:hover { background:#edf2ea; color:var(--deep); }
+    .note-body { width:100%; min-height:390px; resize:vertical; padding:19px 20px; border:1px solid var(--line); border-radius:18px; outline:0; color:#405049; background:rgba(255,255,255,.42); font:16px/1.85 'DM Mono',monospace; letter-spacing:-.02em; transition:border-color .35s cubic-bezier(.32,.72,0,1), background .35s cubic-bezier(.32,.72,0,1); }
+    .note-body:focus { border-color:var(--sage); background:#fff; }
+    .note-body::placeholder { color:#b5c0b8; }
+    .preview { display:block; min-height:390px; overflow:auto; padding:19px 20px; border:1px solid var(--line); border-radius:18px; background:rgba(255,255,255,.72); color:#53655b; font:16px/1.9 Newsreader,serif; }
+    .preview h3 { margin:0 0 16px; color:#708379; font:500 10px 'DM Mono',monospace; letter-spacing:.13em; text-transform:uppercase; }
+    .preview h1,.preview h2,.preview h3,.preview h4,.preview h5,.preview h6 { color:var(--deep); line-height:1.25; margin:10px 0 8px; }
+    .preview h1 { font-size:30px; } .preview h2 { font-size:24px; } .preview h3 { font-size:20px; } .preview h4,.preview h5,.preview h6 { font-size:17px; }
+    .preview p { margin:0 0 14px; } .preview ul { margin:0 0 14px; padding-left:22px; }
+    .preview code { padding:2px 5px; border-radius:5px; background:#edf1eb; font:13px 'DM Mono',monospace; }
+    .preview pre { overflow:auto; margin:10px 0 14px; padding:13px; border-radius:10px; background:#edf1eb; }
+    .preview pre code { padding:0; background:transparent; color:#466455; }
+    .preview hr { margin:18px 0; border:0; border-top:1px solid var(--line); }
+    .preview blockquote { margin:0 0 14px; padding-left:15px; border-left:3px solid var(--sage); color:#718178; }
+    .footer-tip { margin-top:52px; color:#a4afa8; font:10px 'DM Mono',monospace; }
+    .toast { position:fixed; right:25px; bottom:25px; padding:12px 16px; border:1px solid rgba(255,255,255,.7); border-radius:13px; background:rgba(41,71,62,.93); color:white; box-shadow:0 15px 40px rgba(41,71,62,.2); font-size:12px; opacity:0; transform:translateY(12px); pointer-events:none; transition:opacity .45s cubic-bezier(.32,.72,0,1), transform .45s cubic-bezier(.32,.72,0,1); }
+    .toast.show { opacity:1; transform:translateY(0); }
+    @media (max-width: 900px) { .markdown-grid { grid-template-columns:1fr; gap:22px; } .preview,.note-body { min-height:260px; } }
+    @media (max-width: 760px) { .app { grid-template-columns:1fr; } .sidebar { border-right:0; border-bottom:1px solid var(--line); padding:22px 18px 18px; } .brand { margin-bottom:22px; } .notes-list { display:flex; overflow-x:auto; padding-bottom:5px; } .note-card { min-width:205px; } .note-card.active:before { display:none; } .editor-shell { padding:25px 22px 35px; } .editor-top { margin-bottom:35px; } .note-body { min-height:240px; } }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <aside class="sidebar">
+      <div class="brand"><div class="brand-mark"><span class="mark">页</span>纸间</div><span class="eyebrow">NOTES / 01</span></div>
+      <button type="button" class="new-note" id="newNote"><span>新建一篇笔记</span><span aria-hidden="true">＋</span></button>
+      <div class="search-wrap"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg><input class="search" id="search" placeholder="搜索笔记…" aria-label="搜索笔记" /></div>
+      <div class="list-heading"><span class="eyebrow">全部笔记</span><span class="count" id="count"></span></div>
+      <div class="notes-list" id="notesList"></div>
+    </aside>
+    <section class="editor-shell">
+      <div class="editor-top"><div class="status"><span class="status-dot"></span><span id="saveStatus">已保存到本地</span></div><div class="actions"><button class="icon-btn" id="previewToggle" title="预览" aria-label="预览"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6-10-6-10-6Z"/><circle cx="12" cy="12" r="2.5"/></svg></button><button class="icon-btn" id="pinNote" title="置顶" aria-label="置顶"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="m15 4 5 5-3 1-4 4v5l-2-2-2 2v-5l-4-4-1-3 5-3 3 3 3-3Z"/></svg></button><button class="icon-btn danger" id="deleteNote" title="删除" aria-label="删除"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M4 7h16M10 11v6m4-6v6M6 7l1 13h10l1-13M9 7V4h6v3"/></svg></button></div></div>
+      <div class="note-form"><input class="note-title-input" id="title" placeholder="无标题笔记" aria-label="笔记标题" /><div class="note-info"><span id="date">—</span><span>·</span><span id="words">0 字</span><span class="tag">个人空间</span></div><div class="divider"></div><div class="markdown-grid"><div class="markdown-pane"><div class="pane-label"><strong>Markdown 编辑</strong><div class="md-tools"><button type="button" class="md-plus" id="mdPlus" aria-label="插入 Markdown 语法">＋</button><div class="md-menu" id="mdMenu"><button type="button" class="md-item" data-md="# ">H1 标题</button><button type="button" class="md-item" data-md="## ">H2 小标题</button><button type="button" class="md-item" data-md="**粗体**" data-wrap="true">粗体</button><button type="button" class="md-item" data-md="*斜体*" data-wrap="true">斜体</button><button type="button" class="md-item" data-md="- ">无序列表</button><button type="button" class="md-item" data-md="1. ">有序列表</button><button type="button" class="md-item" data-md="> ">引用</button><button type="button" class="md-item" data-md="&#96;代码&#96;" data-wrap="true">行内代码</button><button type="button" class="md-item" data-md="[链接文字](https://)" data-wrap="true">链接</button><button type="button" class="md-item" data-md="- [ ] ">待办事项</button></div></div></div><textarea class="note-body" id="body" placeholder="# 从这里开始\n\n支持 **粗体**、*斜体*、- 列表和 \`代码\`。" aria-label="Markdown 笔记内容"></textarea></div><div class="markdown-pane"><div class="pane-label"><strong>实时预览</strong><span>右侧查看</span></div><div class="preview" id="preview"><div id="previewText"></div></div></div></div><div class="footer-tip">⌘ / Ctrl + N 新建　·　⌘ / Ctrl + S 保存　·　点击 ＋ 插入 Markdown 语法</div></div>
+    </section>
+  </main>
+  <div class="toast" id="toast"></div>
+  <script>
+    const seed = [
+      { id:'welcome', title:'给自己留一块安静的地方', body:'记录不是为了证明什么。\n\n它更像是在忙乱的日子里，给未来的自己留下一盏小灯。今天先写下三个值得被记住的瞬间：\n\n— 清晨窗边的光\n— 一杯刚好的咖啡\n— 终于完成了拖延已久的事', date:'2026-11-03', pinned:true },
+      { id:'ideas', title:'产品灵感：更轻的输入', body:'好的工具应该让表达先发生，整理可以晚一点。\n\n让快捷键、自动保存和清晰的层级退到背景里。', date:'2026-11-02', pinned:false },
+      { id:'reading', title:'阅读摘记 · 留白', body:'留白不是空缺，而是让重要的事拥有呼吸的空间。', date:'2026-10-28', pinned:false }
+    ];
+    const $ = id => document.getElementById(id);
+    let notes = JSON.parse(localStorage.getItem('paper-notes') || 'null') || seed;
+    let activeId = localStorage.getItem('paper-active') || notes[0].id;
+    let saveTimer;
+    const formatDate = value => new Intl.DateTimeFormat('zh-CN',{month:'short',day:'numeric'}).format(new Date(value + 'T12:00:00'));
+    function current(){ return notes.find(n => n.id === activeId); }
+    function persist(){ localStorage.setItem('paper-notes', JSON.stringify(notes)); localStorage.setItem('paper-active', activeId); }
+    function renderList(){
+      const query = $('search').value.trim().toLowerCase();
+      const shown = notes.filter(n => (n.title + n.body).toLowerCase().includes(query)).sort((a,b) => Number(b.pinned)-Number(a.pinned) || b.date.localeCompare(a.date));
+      $('count').textContent = `${shown.length} 篇`;
+      $('notesList').innerHTML = shown.length ? shown.map(n => `<button class="note-card ${n.id===activeId?'active':''}" data-id="${n.id}"><div class="note-title">${n.pinned?'<span class="pin">✦</span>':''}<span>${escapeHtml(n.title || '无标题笔记')}</span></div><div class="note-excerpt">${escapeHtml(n.body.replace(/\n/g,' ') || '还没有内容')}</div><div class="note-meta"><span>${formatDate(n.date)}</span><span>${n.body.length} 字</span></div></button>`).join('') : '<div class="empty">没有找到匹配的笔记。<br>试试换个关键词。</div>';
+      document.querySelectorAll('.note-card').forEach(card => card.addEventListener('click', () => { activeId=card.dataset.id; persist(); renderList(); renderEditor(); }));
+    }
+    function renderEditor(){ const n=current(); if(!n) return; $('title').value=n.title; $('body').value=n.body; $('date').textContent=formatDate(n.date); $('words').textContent=`${n.body.length} 字`; $('previewText').innerHTML=escapeHtml(n.body).replace(/\n/g,'<br>'); $('saveStatus').textContent='已保存到本地'; }
+    function escapeHtml(text){ return text.replace(/[&<>'"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c])); }
+    function update(){ const n=current(); n.title=$('title').value; n.body=$('body').value; n.date=new Date().toISOString().slice(0,10); $('words').textContent=`${n.body.length} 字`; $('date').textContent=formatDate(n.date); $('saveStatus').textContent='正在保存…'; clearTimeout(saveTimer); saveTimer=setTimeout(()=>{persist(); renderList(); $('saveStatus').textContent='已保存到本地';},350); }
+    function toast(message){ $('toast').textContent=message; $('toast').classList.add('show'); setTimeout(()=> $('toast').classList.remove('show'),1800); }
+    $('newNote').addEventListener('click', () => { const n={id:'note-'+Date.now(),title:'',body:'',date:new Date().toISOString().slice(0,10),pinned:false}; notes.unshift(n); activeId=n.id; persist(); renderList(); renderEditor(); $('title').focus(); toast('已新建笔记'); });
+    $('search').addEventListener('input', renderList); $('title').addEventListener('input', update); $('body').addEventListener('input', update);
+    $('deleteNote').addEventListener('click', () => { if(notes.length===1){toast('至少保留一篇笔记'); return;} if(!confirm('确定删除这篇笔记吗？')) return; notes=notes.filter(n=>n.id!==activeId); activeId=notes[0].id; persist(); renderList(); renderEditor(); toast('笔记已删除'); });
+    $('pinNote').addEventListener('click', () => { const n=current(); n.pinned=!n.pinned; persist(); renderList(); toast(n.pinned?'已置顶':'已取消置顶'); });
+    $('previewToggle').addEventListener('click', () => $('preview').classList.toggle('show'));
+    document.addEventListener('keydown', e => { if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='n'){e.preventDefault();$('newNote').click();} if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='s'){e.preventDefault();persist();toast('已保存');} });
+    function renderMarkdown(source) {
+      let html = escapeHtml(source);
+      html = html.replace(/^\x60{3}([\s\S]*?)\x60{3}/gm, '<pre><code>$1</code></pre>');
+      html = html.replace(/^###### (.*)$/gm, '<h6>$1</h6>').replace(/^##### (.*)$/gm, '<h5>$1</h5>').replace(/^#### (.*)$/gm, '<h4>$1</h4>').replace(/^### (.*)$/gm, '<h3>$1</h3>').replace(/^## (.*)$/gm, '<h2>$1</h2>').replace(/^# (.*)$/gm, '<h1>$1</h1>');
+      html = html.replace(/^&gt; (.*)$/gm, '<blockquote>$1</blockquote>').replace(/^[-*] (.*)$/gm, '<li>$1</li>').replace(/^(\d+)\. (.*)$/gm, '<li>$2</li>');
+      html = html.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>').replace(/\*(.+?)\*/g, '<em>$1</em>').replace(/\x60([^ \x60][^\x60]*?)\x60/g, '<code>$1</code>').replace(/^---$/gm, '<hr>');
+      html = html.split(/\n{2,}/).map(block => /^(<h|<pre|<blockquote|<li|<hr)/.test(block) ? block : '<p>' + block.replace(/\n/g, '<br>') + '</p>').join('');
+      return html || '<p style="color:#a5b0a8">右侧会实时显示 Markdown 预览</p>';
+    }
+    $('body').addEventListener('input', () => { $('previewText').innerHTML = renderMarkdown($('body').value); });
+    $('notesList').addEventListener('click', () => { $('previewText').innerHTML = renderMarkdown($('body').value); });
+    $('newNote').addEventListener('click', () => { $('previewText').innerHTML = renderMarkdown($('body').value); });
+    $('previewToggle').style.display = 'none';
+    $('mdMenu').insertAdjacentHTML('beforeend', '<button type="button" class="md-item" data-md="### ">H3 标题</button><button type="button" class="md-item" data-md="#### ">H4 标题</button><button type="button" class="md-item" data-md="##### ">H5 标题</button><button type="button" class="md-item" data-md="###### ">H6 标题</button><button type="button" class="md-item" data-md="&#96;&#96;&#96;&#10;输入内容&#10;&#96;&#96;&#96;" data-wrap="true">代码块</button><button type="button" class="md-item" data-md="---">分隔线</button>');
+    $('mdPlus').addEventListener('click', e => { e.stopPropagation(); $('mdMenu').classList.toggle('open'); $('mdPlus').classList.toggle('open'); });
+    document.querySelectorAll('.md-item').forEach(item => item.addEventListener('click', () => {
+      const editor = $('body'), start = editor.selectionStart, end = editor.selectionEnd, selected = editor.value.slice(start, end);
+      let snippet = item.dataset.md;
+      if (item.dataset.wrap === 'true' && selected) snippet = snippet.replace(/粗体|斜体|代码|链接文字|输入内容/, selected);
+      editor.setRangeText(snippet, start, end, 'end');
+      editor.focus();
+      editor.dispatchEvent(new Event('input', { bubbles:true }));
+      $('mdMenu').classList.remove('open'); $('mdPlus').classList.remove('open');
+    }));
+    document.addEventListener('click', e => { if (!e.target.closest('.md-tools')) { $('mdMenu').classList.remove('open'); $('mdPlus').classList.remove('open'); } });
+    renderList(); renderEditor();
+    $('previewText').innerHTML = renderMarkdown($('body').value);
+  </script>
+</body>
+</html>
